@@ -57,7 +57,7 @@ public class TestSerializableEntity {
         final Serializable serializableObj = new SerializableObject();
         out.writeObject(serializableObj);
 
-        final SerializableEntity httpentity = new SerializableEntity(serializableObj, true);
+        final SerializableEntity httpentity = new SerializableEntity(serializableObj, true, null);
 
         Assert.assertEquals(baos.toByteArray().length, httpentity.getContentLength());
         Assert.assertNotNull(httpentity.getContent());
@@ -73,7 +73,7 @@ public class TestSerializableEntity {
         final Serializable serializableObj = new SerializableObject();
         out.writeObject(serializableObj);
 
-        final SerializableEntity httpentity = new SerializableEntity(serializableObj, false);
+        final SerializableEntity httpentity = new SerializableEntity(serializableObj, false, null);
 
         Assert.assertEquals(-1, httpentity.getContentLength());
         Assert.assertNotNull(httpentity.getContent());
@@ -84,7 +84,7 @@ public class TestSerializableEntity {
     @Test
     public void testIllegalConstructor() throws Exception {
         try {
-            new SerializableEntity(null, false);
+            new SerializableEntity(null, false, null);
             Assert.fail("IllegalArgumentException should have been thrown");
         } catch (final IllegalArgumentException ex) {
             // expected
@@ -94,7 +94,7 @@ public class TestSerializableEntity {
     @Test
     public void testWriteToBuff() throws Exception {
         final Serializable serializableObj = new SerializableObject();
-        final SerializableEntity httpentity = new SerializableEntity(serializableObj, true);
+        final SerializableEntity httpentity = new SerializableEntity(serializableObj, true, null);
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         httpentity.writeTo(out);
@@ -117,7 +117,7 @@ public class TestSerializableEntity {
     @Test
     public void testWriteToDirect() throws Exception {
         final Serializable serializableObj = new SerializableObject();
-        final SerializableEntity httpentity = new SerializableEntity(serializableObj, false);
+        final SerializableEntity httpentity = new SerializableEntity(serializableObj, false, null);
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         httpentity.writeTo(out);

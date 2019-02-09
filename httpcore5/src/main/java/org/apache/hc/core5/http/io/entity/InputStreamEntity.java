@@ -31,74 +31,39 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.util.Args;
 
 /**
- * A streamed, non-repeatable entity that obtains its content from
- * an {@link InputStream}.
+ * A streamed, non-repeatable entity that obtains its content from an {@link InputStream}.
  *
  * @since 4.0
  */
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class InputStreamEntity extends AbstractHttpEntity {
 
     private final InputStream content;
     private final long length;
 
-    /**
-     * Creates an entity with an unknown length.
-     * Equivalent to {@code new InputStreamEntity(inStream, -1)}.
-     *
-     * @param inStream input stream
-     * @throws IllegalArgumentException if {@code inStream} is {@code null}
-     * @since 4.3
-     */
-    public InputStreamEntity(final InputStream inStream) {
-        this(inStream, -1);
-    }
-
-    /**
-     * Creates an entity with a specified content length.
-     *
-     * @param inStream input stream
-     * @param length of the input stream, {@code -1} if unknown
-     * @throws IllegalArgumentException if {@code inStream} is {@code null}
-     */
-    public InputStreamEntity(final InputStream inStream, final long length) {
-        this(inStream, length, null);
-    }
-
-    /**
-     * Creates an entity with a content type and unknown length.
-     * Equivalent to {@code new InputStreamEntity(inStream, -1, contentType)}.
-     *
-     * @param inStream input stream
-     * @param contentType content type
-     * @throws IllegalArgumentException if {@code inStream} is {@code null}
-     * @since 4.3
-     */
-    public InputStreamEntity(final InputStream inStream, final ContentType contentType) {
-        this(inStream, -1, contentType);
-    }
-
-    /**
-     * @param inStream input stream
-     * @param length of the input stream, {@code -1} if unknown
-     * @param contentType for specifying the {@code Content-Type} header, may be {@code null}
-     * @throws IllegalArgumentException if {@code inStream} is {@code null}
-     * @since 4.2
-     */
-    public InputStreamEntity(final InputStream inStream, final long length, final ContentType contentType) {
-        super();
+    public InputStreamEntity(
+            final InputStream inStream, final long length, final ContentType contentType, final String contentEncoding) {
+        super(contentType, contentEncoding);
         this.content = Args.notNull(inStream, "Source input stream");
         this.length = length;
-        if (contentType != null) {
-            setContentType(contentType.toString());
-        }
+    }
+
+    public InputStreamEntity(final InputStream inStream, final long length, final ContentType contentType) {
+        this(inStream, length, contentType, null);
+    }
+
+    public InputStreamEntity(final InputStream inStream, final ContentType contentType) {
+        this(inStream, -1, contentType, null);
     }
 
     @Override
-    public boolean isRepeatable() {
+    public final boolean isRepeatable() {
         return false;
     }
 
@@ -106,12 +71,12 @@ public class InputStreamEntity extends AbstractHttpEntity {
      * @return the content length or {@code -1} if unknown
      */
     @Override
-    public long getContentLength() {
+    public final long getContentLength() {
         return this.length;
     }
 
     @Override
-    public InputStream getContent() throws IOException {
+    public final InputStream getContent() throws IOException {
         return this.content;
     }
 
@@ -123,7 +88,7 @@ public class InputStreamEntity extends AbstractHttpEntity {
      *
      */
     @Override
-    public void writeTo(final OutputStream outStream) throws IOException {
+    public final void writeTo(final OutputStream outStream) throws IOException {
         Args.notNull(outStream, "Output stream");
         try (final InputStream inStream = this.content) {
             final byte[] buffer = new byte[OUTPUT_BUFFER_SIZE];
@@ -149,12 +114,12 @@ public class InputStreamEntity extends AbstractHttpEntity {
     }
 
     @Override
-    public boolean isStreaming() {
+    public final boolean isStreaming() {
         return true;
     }
 
     @Override
-    public void close() throws IOException {
+    public final void close() throws IOException {
         content.close();
     }
 

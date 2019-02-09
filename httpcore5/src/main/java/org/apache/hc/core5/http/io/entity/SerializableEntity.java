@@ -35,6 +35,9 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -45,12 +48,12 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.0
  */
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class SerializableEntity extends AbstractHttpEntity {
 
+    private final Serializable objRef;
+
     private byte[] objSer;
-
-    private Serializable objRef;
-
     /**
      * Creates new instance of this class.
      *
@@ -59,27 +62,33 @@ public class SerializableEntity extends AbstractHttpEntity {
      *        stored in an internal buffer
      * @throws IOException in case of an I/O error
      */
-    public SerializableEntity(final Serializable ser, final boolean bufferize) throws IOException {
-        super();
+    public SerializableEntity(
+            final Serializable ser, final boolean bufferize, final ContentType contentType,
+            final String contentEncoding) throws IOException {
+        super(contentType, contentEncoding);
         Args.notNull(ser, "Source object");
         if (bufferize) {
             createBytes(ser);
+            this.objRef = null;
         } else {
             this.objRef = ser;
         }
     }
 
-    /**
-     * Creates new instance of this class.
-     *
-     * @param serializable The object to serialize.
-     *
-     * @since 4.3
-     */
-    public SerializableEntity(final Serializable serializable) {
-        super();
+    public SerializableEntity(
+            final Serializable serializable, final ContentType contentType, final String contentEncoding) {
+        super(contentType, contentEncoding);
         Args.notNull(serializable, "Source object");
         this.objRef = serializable;
+    }
+
+    public SerializableEntity(
+            final Serializable ser, final boolean bufferize, final ContentType contentType) throws IOException {
+        this(ser, bufferize, contentType, null);
+    }
+
+    public SerializableEntity(final Serializable serializable, final ContentType contentType) {
+        this(serializable, contentType, null);
     }
 
     private void createBytes(final Serializable ser) throws IOException {
@@ -91,7 +100,7 @@ public class SerializableEntity extends AbstractHttpEntity {
     }
 
     @Override
-    public InputStream getContent() throws IOException, IllegalStateException {
+    public final InputStream getContent() throws IOException, IllegalStateException {
         if (this.objSer == null) {
             createBytes(this.objRef);
         }
@@ -99,7 +108,7 @@ public class SerializableEntity extends AbstractHttpEntity {
     }
 
     @Override
-    public long getContentLength() {
+    public final long getContentLength() {
         if (this.objSer ==  null) {
             return -1;
         }
@@ -107,17 +116,17 @@ public class SerializableEntity extends AbstractHttpEntity {
     }
 
     @Override
-    public boolean isRepeatable() {
+    public final boolean isRepeatable() {
         return true;
     }
 
     @Override
-    public boolean isStreaming() {
+    public final boolean isStreaming() {
         return this.objSer == null;
     }
 
     @Override
-    public void writeTo(final OutputStream outStream) throws IOException {
+    public final void writeTo(final OutputStream outStream) throws IOException {
         Args.notNull(outStream, "Output stream");
         if (this.objSer == null) {
             final ObjectOutputStream out = new ObjectOutputStream(outStream);
@@ -130,8 +139,7 @@ public class SerializableEntity extends AbstractHttpEntity {
     }
 
     @Override
-    public void close() throws IOException {
-        // do nothing.
+    public final void close() throws IOException {
     }
 
 }
